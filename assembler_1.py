@@ -79,124 +79,20 @@ func7 = {
 
 opcode = {"add": "0110011", "sub": "0110011", "sll": "0110011", "slt": "0110011", "sltu": "0110011",
         "xor": "0110011", "srl": "0110011", "sra": "0110011", "or": "0110011","and": "0110011", "lw":"0000011", "addi":"0010011", 
-        "jalr":"1100111", "sw":"0100011", "beq":"1100011"}
+        "jalr":"1100111", "sw":"0100011", "beq":"1100011","blt":"1100011","bne":"1100011"}
 
-def R_identify(text):
-    space_split = text.split(" ", 1)  # Split only at the first space to separate label
-    if len(space_split) == 2 and space_split[0] not in func7:  # If there's a label
-        text = space_split[1]  # Remove the label and process the instruction
-    
-    space_split = text.split(" ")
-    ops = space_split[0]
-    comma_split = text.split(",")
+def imm1(str1):
+    return f"{str1[-13]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
 
-    if len(comma_split) != 3:
-        return "error"
-    
-    rd = comma_split[0].split(" ")[1].strip()
-    rs1 = comma_split[1].strip()
-    rs2 = comma_split[2].strip()
-    
-    if rd not in register or rs1 not in register or rs2 not in register:
-        return "error"
-    
-    binary_pattern = (
-        func7[ops] +" "+ register[rs2]+" " + register[rs1] + " " + func3[ops] +" " + register[rd] + " " + opcode[ops]
-    )
-    
-    return binary_pattern
+def imm2(str1):
+    return f"{str1[-5]}{str1[-4]}{str1[-3]}{str1[-2]}{str1[-12]}"
 
-# print(R_identify("add a0, a1, a2"))
-
-
-# ..............................................................................................................................................}
-
-def two_complement(num, bits):
-    if num<0:
-        num = (1 << bits) + num 
-    return str(format(num, f"0{bits}b"))
-
-def I_identify(text):
-    space_split = text.split()
-    
-    # Check if there's a label
-    if space_split[1] in func3:  # Assuming func3 contains valid instruction mnemonics
-        ops = space_split[1]  # Instruction mnemonic
-        instr_part = " ".join(space_split[1:])  # Extract the instruction part
+def b_type_find_imm(ls,count):
+    k=ls[count]
+    if k[-1].isdigit():
+        return 4*int(k[-1])
     else:
-        ops = space_split[0]  # Instruction mnemonic without label
-        instr_part = text  # Full instruction if no label
-    
-    comma_split = instr_part.split(",")
-    if len(comma_split) != 2:
-        return "error"
-    
-    rd = comma_split[0].split(" ")[1].strip()
-    imm_rs1_split = comma_split[1].strip().split("(")
-    
-    if len(imm_rs1_split) != 2:
-        return "error"
-    
-    immediate_val = imm_rs1_split[0].strip()
-    rs1 = imm_rs1_split[1].strip(")")
-    
-    if rd not in register or rs1 not in register:
-        return "error"
-    
-    imm = two_complement(int(immediate_val), 12)
-    
-    final = " ".join([imm, register[rs1], func3[ops], register[rd], opcode[ops]])
-    return final
-# print(I_identify("l1 lw a6, -4(s9)"))
-# ......................................................................................................................................................................
-def S_identify(text):
-    space_split = text.split()
-    
-    # Check if there's a label
-    if space_split[1] in func3:
-        ops = space_split[1]
-        instr_start = 2
-    else:
-        ops = space_split[0]
-        instr_start = 1
-    
-    comma_split = text.split(",")
-    rs2 = comma_split[0].split()[instr_start].strip()
-    
-    imm_rs1_split = comma_split[1].strip().split("(")
-    immediate_val = imm_rs1_split[0].strip()
-    rs1 = imm_rs1_split[1].strip(")")
-    
-    if len(comma_split) != 2:
-        return "error"
-    if rs2 not in register or rs1 not in register:
-        return "error"
-    
-    imm = two_complement(int(immediate_val), 12)
-    final = " ".join([imm[:7], register[rs2], register[rs1], func3[ops], imm[7:], opcode[ops]])
-    return final
-
-print(S_identify("start sw a6, 8(s9)"))
-#...........................................................................................................................................................
-
-# def B_identify(text):
-#     space_split = text.split(" ")
-#     ops = space_split[0]
-
-#     comma_split = text.split(",")
-#     rs2 = comma_split[0].split(" ")[1].strip()
-    
-#     imm_rs1_split = comma_split[1].strip().split("(")
-#     immediate_val = imm_rs1_split[0].strip()  
-#     rs1 = imm_rs1_split[1].strip(")")  
-
-
-#     if len(comma_split)!=2:
-#         return "error"
-#     if rs2 not in register or rs1 not in register:
-#         return "error"
-#     imm = two_complement(int(immediate_val), 5)
-#     beq_imm = '1111111'
-#     final = " ".join([beq_imm, register[rs2], register[rs1], func3[ops], imm, opcode[ops]])
-#     return final
-
+        # if count!=0:
+        for i in range(len(ls)):
+            if ls[i][0]==k[-1]:
+                return 4*(i-count)
