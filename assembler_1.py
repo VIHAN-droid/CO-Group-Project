@@ -202,7 +202,6 @@ def main(test_file):
     file = open(test_file, "r")
     data = file.readlines()
     refined_data = refining_data(data)
-    print(refined_data)
 
     for count in range(len(refined_data)):
         countt=0
