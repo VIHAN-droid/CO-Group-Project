@@ -106,6 +106,24 @@ def refining_data(data):
         ans.append(ans1)
     return ans
 
+def R_identify(text_list):
+
+    if text_list[0] in func7: 
+        ops = text_list[0]
+        rd, rs1, rs2 = text_list[1], text_list[2], text_list[3]
+    else:  
+        ops = text_list[1]  
+        rd, rs1, rs2 = text_list[2], text_list[3], text_list[4]
+
+    if rd not in register or rs1 not in register or rs2 not in register:
+        return "error"
+    
+    binary_pattern = (
+        func7[ops] + "" + register[rs2] + "" + register[rs1] + "" +
+        func3[ops] + "" + register[rd] + "" + opcode[ops]
+    )
+    
+    return binary_pattern
 
 def imm1(str1):
     return f"{str1[-13]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
