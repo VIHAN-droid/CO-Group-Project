@@ -257,5 +257,5 @@ def write_file(file):
 
 file_input = input("Enter the file name: ")
 write_file(file_input)
-print("Output has been stored in Output.txt")
+print("Output is stored in Output.txt")
 
