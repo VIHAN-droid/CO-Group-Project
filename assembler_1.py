@@ -198,3 +198,36 @@ def b_type_find_imm(ls,count):
         for i in range(len(ls)):
             if ls[i][0]==k[-1]:
                 return 4*(i-count)
+def main(test_file):
+    file = open(test_file, "r")
+    data = file.readlines()
+    refined_data = refining_data(data)
+    print(refined_data)
+
+    for count in range(len(refined_data)):
+
+        instructions = refined_data[count]
+
+        if len(instructions) not in [4, 5]:
+            print('error')
+            continue
+
+        opcode_key = instructions[0] if instructions[0] in opcode else instructions[1] if len(instructions) > 1 and \
+                                                                                          instructions[
+                                                                                              1] in opcode else None
+
+        if opcode_key is None:
+            print('error')
+            continue
+
+        if opcode_key in R_type:
+            print(R_identify(instructions))
+        elif opcode_key in S_type:
+            print(S_identify(instructions))
+        elif opcode_key in I_type:
+            print(I_identify(instructions))
+        else:
+            print('error')
+
+    file.close()
+
