@@ -125,6 +125,64 @@ def R_identify(text_list):
     
     return binary_pattern
 
+def I_identify(text_list):
+
+    if not isinstance(text_list, list) or len(text_list) < 4:
+        return "error"
+    if text_list[0] not in func3:
+        if len(text_list) < 5:
+            return "error"  
+        ops = text_list[1]
+        if ops == 'lw':
+            rd = text_list[2]
+            offset = text_list[3]
+            rs1 = text_list[4]
+        else:
+            rd, rs1, immediate_val = text_list[2], text_list[3], text_list[4]
+    else:
+        ops = text_list[0]
+        if ops == 'lw':
+            rd = text_list[1]
+            offset = text_list[2]
+            rs1 = text_list[3]
+        else:
+            rd, rs1, immediate_val = text_list[1], text_list[2], text_list[3]
+
+    if rd not in register or rs1 not in register:
+        return "error"
+    try:
+        if ops == 'lw':
+            imm = two_complement(int(offset), 12)
+        else:
+            imm = two_complement(int(immediate_val), 12)
+    except ValueError:
+        return "error"
+
+    final = "".join([imm, register[rs1], func3[ops], register[rd], opcode[ops]])
+    return final
+
+def S_identify(text_list):
+    if not isinstance(text_list, list) or len(text_list) < 4:
+        return "error"
+
+    if text_list[0] in func3:  
+        ops = text_list[0]  
+        rs2, immediate_val, rs1 = text_list[1], text_list[2], text_list[3]
+    elif text_list[1] in func3:
+        ops = text_list[1]  
+        rs2, immediate_val, rs1 = text_list[2], text_list[3], text_list[4]
+    else:
+        return "error"
+   
+    if rs2 not in register or rs1 not in register: 
+        return "error"
+    
+    imm = two_complement(int(immediate_val), 12)
+
+    final = "".join([imm[:7], register[rs2], register[rs1], func3[ops], imm[7:], opcode[ops]])
+    return final
+
+
 def imm1(str1):
     return f"{str1[-13]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
 
