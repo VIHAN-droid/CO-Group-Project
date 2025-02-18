@@ -205,29 +205,43 @@ def main(test_file):
     print(refined_data)
 
     for count in range(len(refined_data)):
-
+        countt=0
+        for i in refined_data[count]:
+            if i in B_type:
+                number = b_type_find_imm(refined_data, count)
+                # if number:
+                final_imm = two_complement(number, 32)
+                imm_1 = imm1(final_imm)
+                imm_2 = imm2(final_imm)
+                rs2 = register[refined_data[count][-2]]
+                rs1 = register[refined_data[count][-3]]
+                f3_1 = func3[refined_data[count][-4]]
+                opc = opcode[refined_data[count][-4]]
+                print(f"{imm_1}{rs2}{rs1}{f3_1}{imm_2}{opc}")
+                countt+=1
         instructions = refined_data[count]
-
-        if len(instructions) not in [4, 5]:
-            print('error')
-            continue
-
-        opcode_key = instructions[0] if instructions[0] in opcode else instructions[1] if len(instructions) > 1 and \
-                                                                                          instructions[
-                                                                                              1] in opcode else None
-
-        if opcode_key is None:
-            print('error')
-            continue
-
-        if opcode_key in R_type:
-            print(R_identify(instructions))
-        elif opcode_key in S_type:
-            print(S_identify(instructions))
-        elif opcode_key in I_type:
-            print(I_identify(instructions))
-        else:
-            print('error')
+        if countt==0:
+            if len(instructions) not in [4, 5]:
+                print('error')
+                continue
+    
+            opcode_key = instructions[0] if instructions[0] in opcode else instructions[1] if len(instructions) > 1 and \
+                                                                                              instructions[
+                                                                                                  1] in opcode else None
+    
+            if opcode_key is None:
+                print('error')
+                continue
+    
+            if opcode_key in R_type:
+                print(R_identify(instructions))
+            elif opcode_key in S_type:
+                print(S_identify(instructions))
+            elif opcode_key in I_type:
+                print(I_identify(instructions))
+            else:
+                print('error')
 
     file.close()
-
+inp=input("Enter file name")
+main(inp)
