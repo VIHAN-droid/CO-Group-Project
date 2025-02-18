@@ -81,6 +81,32 @@ opcode = {"add": "0110011", "sub": "0110011", "sll": "0110011", "slt": "0110011"
         "xor": "0110011", "srl": "0110011", "sra": "0110011", "or": "0110011","and": "0110011", "lw":"0000011", "addi":"0010011", 
         "jalr":"1100111", "sw":"0100011", "beq":"1100011","blt":"1100011","bne":"1100011"}
 
+def two_complement(num, bits):
+    if num<0:
+        num = (1 << bits) + num 
+    return str(format(num, f"0{bits}b"))
+
+def refining_data(data):
+    a1 = "abcdefghijklmnopqrstuvwxyz-"
+    a2 = "1234567890"
+    valid_chars = set(a1 + a2)
+    ans = []
+    for line in data:
+        line = line.strip()  
+        char1 = 0
+        ans1 = []
+        while char1 < len(line):
+            if line[char1] in valid_chars:
+                char2 = char1
+                while char1 < len(line) and line[char1] in valid_chars:
+                    char1 += 1
+                ans1.append(line[char2:char1]) 
+            else:
+                char1 += 1  
+        ans.append(ans1)
+    return ans
+
+
 def imm1(str1):
     return f"{str1[-13]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
 
