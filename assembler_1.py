@@ -79,14 +79,16 @@ func7 = {
 
 opcode = {"add": "0110011", "sub": "0110011", "sll": "0110011", "slt": "0110011", "sltu": "0110011",
         "xor": "0110011", "srl": "0110011", "sra": "0110011", "or": "0110011","and": "0110011", "lw":"0000011", "addi":"0010011", 
-        "jalr":"1100111", "sw":"0100011", "beq":"1100011","blt":"1100011","bne":"1100011"}
+        "jalr":"1100111", "sw":"0100011", "beq":"1100011","blt":"1100011","bne":"1100011","jal":"1101111"}
 
 def two_complement(num, bits):
+    
     if num<0:
         num = (1 << bits) + num 
     return str(format(num, f"0{bits}b"))
 
 def refining_data(data):
+
     a1 = "abcdefghijklmnopqrstuvwxyz-"
     a2 = "1234567890"
     valid_chars = set(a1 + a2)
@@ -105,6 +107,36 @@ def refining_data(data):
                 char1 += 1  
         ans.append(ans1)
     return ans
+
+def J_Identify(text_list,label_dict):
+
+    if text_list[0] in opcode:
+        ops = text_list[0]
+        rd = text_list[1]
+        x = text_list[2]
+        if x.isdigit() or (x.startswith('-') and x[1:].isdigit()): 
+            num = int(x)
+            imm = two_complement(num,23)
+        else:
+            num = 4 * ( label_dict[x][0] - label_dict[x][-1] )
+            imm = two_complement(num,23)
+
+    elif text_list[1] in opcode:
+        ops = text_list[1]
+        rd = text_list[2]
+        x = text_list[3]
+        if x.isdigit() or (x.startswith('-') and x[1:].isdigit()): 
+            num = int(x)
+            imm = two_complement(num,23)
+        else:
+            num = 4 * ( label_dict[x][0] - label_dict[x][-1] )
+            imm = two_complement(num,23)
+        
+    if rd not in register:
+        return 'error'
+    
+    binary_pattern = ( imm[-21] + imm[-11:-1] + imm[-12] + imm[-20:-12] + register[rd] + opcode[ops] )
+    return binary_pattern
 
 def R_identify(text_list):
 
@@ -162,6 +194,7 @@ def I_identify(text_list):
     return final
 
 def S_identify(text_list):
+
     if not isinstance(text_list, list) or len(text_list) < 4:
         return "error"
 
@@ -184,56 +217,103 @@ def S_identify(text_list):
 
 
 def imm1(str1):
-    return f"{str1[-13]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
+    return f"{str1[-12]}{str1[-11]}{str1[-10]}{str1[-9]}{str1[-8]}{str1[-7]}{str1[-6]}"
+
 
 def imm2(str1):
     return f"{str1[-5]}{str1[-4]}{str1[-3]}{str1[-2]}{str1[-12]}"
 
 def b_type_find_imm(ls,count):
+
     k=ls[count]
-    if k[-1].isdigit():
+    if k[-1].isdigit() or k[-1][0]=="-" and k[-1][1:].isdigit():
         return 4*int(k[-1])
+    
     else:
         # if count!=0:
         for i in range(len(ls)):
             if ls[i][0]==k[-1]:
                 return 4*(i-count)
+
+def return_b_type(imm,rs2,rs1,ops):
+
+    final_imm = two_complement(imm, 12)
+    imm_1 = imm1(final_imm)
+    imm_2 = imm2(final_imm)
+    binary_pattern = f"{imm_1}{register[rs2]}{register[rs1]}{func3[ops]}{imm_2}{opcode[ops]}"
+    return binary_pattern
+
+def B_Identify(text_list, label_dict, current_index):
+
+    if text_list[0] in opcode:
+        ops = text_list[0]
+        rs1 = text_list[1]
+        rs2 = text_list[2]
+        label = text_list[3]
+
+    elif text_list[1] in opcode:
+        ops = text_list[1]
+        rs1 = text_list[2]
+        rs2 = text_list[3]
+        label = text_list[4]
+    else:
+        return 'error'
+    
+    if rs1 not in register or rs2 not in register:
+        return 'error'
+    
+    if label.isdigit() or (label.startswith('-') and label[1:].isdigit()):
+        imm = int(label)
+    else:
+        if label not in label_dict:
+            return 'error'
+        imm = (label_dict[label][0] - current_index) * 4
+    
+    k=return_b_type(imm,rs2,rs1,ops)
+    return k
+
 def main(test_file):
     file = open(test_file, "r")
+    label_dict = {}
     data = file.readlines()
     refined_data = refining_data(data)
     output_list = []
+    counter = 0
+
+    for i in refined_data:
+        if len(i) == 5 and i[0] not in opcode:
+            label_dict[i[0]] = [counter]
+        elif len(i) == 4 and i[0] not in opcode:
+            label_dict[i[0]] = [counter]
+        counter2=0
+        for j in refined_data:
+            if j[-1] == i[0]:
+                label_dict[i[0]].append(counter2)
+            counter2+=1
+        counter += 1
 
     for count in range(len(refined_data)):
-        countt = 0
+        countt=0
         for i in refined_data[count]:
             if i in B_type:
-                number = b_type_find_imm(refined_data, count)
-                final_imm = two_complement(number, 32)
-                imm_1 = imm1(final_imm)
-                imm_2 = imm2(final_imm)
-                rs2 = register[refined_data[count][-2]]
-                rs1 = register[refined_data[count][-3]]
-                f3_1 = func3[refined_data[count][-4]]
-                opc = opcode[refined_data[count][-4]]
-                output_list.append(f"{imm_1}{rs2}{rs1}{f3_1}{imm_2}{opc}")
+                output_list.append(B_Identify(refined_data[count],label_dict,count))
                 countt += 1
 
         instructions = refined_data[count]
         if countt == 0:
-            if len(instructions) not in [4, 5]:
+            if len(instructions) not in [3, 4, 5]:
                 output_list.append('error')
                 continue
 
-            opcode_key = instructions[0] if instructions[0] in opcode else instructions[1] if len(instructions) > 1 and \
-                                                                                              instructions[
-                                                                                                  1] in opcode else None
+            opcode_key = instructions[0] if instructions[0] in opcode else instructions[1] if len(instructions) > 1 and instructions[1] in opcode else None
 
             if opcode_key is None:
                 output_list.append('error')
                 continue
-
-            if opcode_key in R_type:
+            
+            if opcode_key in J_type:
+                output_list.append(J_Identify(instructions,label_dict))
+            elif opcode_key in R_type:
                 output_list.append(R_identify(instructions))
             elif opcode_key in S_type:
                 output_list.append(S_identify(instructions))
@@ -245,7 +325,6 @@ def main(test_file):
     file.close()
     return output_list
 
-
 def write_file(file):
     output_list = main(file)
     with open("Output.txt", "w") as f:
@@ -254,8 +333,6 @@ def write_file(file):
             f.write(line)
             f.write("\n")
 
-
 file_input = input("Enter the file name: ")
 write_file(file_input)
 print("Output is stored in Output.txt")
-
