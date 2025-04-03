@@ -181,3 +181,25 @@ def R_type(inst):
     if rd != 0:
         register[f'x{rd}'] = result
     register['PC'] += 4
+    
+def S_Type(lst):
+    rs2 = int(lst[2], 2)
+    imm = twos_complement(lst[3], 12)
+    rs1 = int(lst[4], 2)
+    base_value = register[f'x{rs1}']
+    final_address = base_value + imm
+    final_address_hex = int_to_hex(final_address)
+    memory_32_bit[final_address_hex] = int_to_32bit_bin(register[f'x{rs2}'])
+    memory_dec[final_address_hex] = str(register[f'x{rs2}'])
+    register['PC'] += 4
+    
+def lw(lst):
+    rd = int(lst[2], 2)
+    imm = twos_complement(lst[3], 12)
+    rs1 = int(lst[4], 2)
+    base_value = register[f'x{rs1}']
+    final_address = base_value + imm
+    final_address_hex = int_to_hex(final_address)
+    if final_address_hex in memory_dec:
+        register[f'x{rd}'] = int(memory_dec[final_address_hex])
+    register['PC'] += 4
