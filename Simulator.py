@@ -159,7 +159,25 @@ def decoder(binary_text):
         imm = imm_20 + imm_19_12 + imm_11 + imm_10_1 + "0"
         return [ins_type, "jal", rd, imm]
     return None
+    
+def twos_complement(bin_str, num_bits):
+    if bin_str.startswith('0b'):
+        bin_str = bin_str[2:]
+    if len(bin_str) < num_bits:
+        bin_str = bin_str.zfill(num_bits)
+    if len(bin_str) > num_bits:
+        bin_str = bin_str[-num_bits:]
+    value = int(bin_str, 2)
+    if bin_str[0] == '1':
+        value -= (1 << num_bits)
+    return value
 
+def int_to_hex(n, width=8):
+    return f"0x{n:0{width}X}"
+
+def int_to_32bit_bin(n):
+    return f"0b{n & 0xFFFFFFFF:032b}"
+    
 def R_type(inst):
     ins = inst[1]
     rd = int(inst[2], 2)
