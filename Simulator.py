@@ -221,3 +221,8 @@ def lw(lst):
     if final_address_hex in memory_dec:
         register[f'x{rd}'] = int(memory_dec[final_address_hex])
     register['PC'] += 4
+
+# if len(sys.argv) != 3:
+#     sys.exit(1)
+input_filename = sys.argv[1]
+output_filename = sys.argv[2]
