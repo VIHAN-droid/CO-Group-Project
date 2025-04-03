@@ -260,3 +260,54 @@ def lw(lst):
 #     sys.exit(1)
 input_filename = sys.argv[1]
 output_filename = sys.argv[2]
+with open(input_filename, "r") as file:
+    instructions = [line.strip() for line in file]
+    list_integer = []
+    list_binary = []
+    instruction_count = len(instructions)
+    register['PC'] = 0
+
+    while 0 <= register['PC'] // 4 < instruction_count:
+        current_pc = register['PC']
+        line = instructions[register['PC'] // 4]
+        decoded = decoder(line)
+        if not decoded:
+            register['PC'] += 4
+            continue
+
+        halt = False
+        if decoded[0] == 'R':
+            R_type(decoded)
+        elif decoded[0] == 'J':
+            jal_operation(decoded)
+        elif decoded[0] == 'B':
+            halt = b_type_adjustment(decoded)
+        elif decoded[0] == 'S':
+            S_Type(decoded)
+        elif decoded[0] == 'I':
+            if decoded[1] == 'lw':
+                lw(decoded)
+            elif decoded[1] == 'addi':
+                rd = int(decoded[2], 2)
+                rs1 = int(decoded[4], 2)
+                imm = twos_complement(decoded[3], 12)
+                if rd != 0:
+                    register[f'x{rd}'] = register[f'x{rs1}'] + imm
+                register['PC'] += 4
+            elif decoded[1] == 'jalr':
+                jalr_operation(decoded)
+
+        l3 = [register[reg] for reg in register]
+        l4 = [int_to_32bit_bin(register[reg]) for reg in register]
+        list_integer.append(l3)
+        list_binary.append(l4)
+
+        if halt:
+            break
+
+    with open(output_filename, "w") as output_file:
+        for state in list_binary:
+            output_file.write(" ".join(state) + "\n")
+        for addr, value in memory_32_bit.items():
+            if addr in key_list:
+                output_file.write(f"{addr}:{value}\n")
