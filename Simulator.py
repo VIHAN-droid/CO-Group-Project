@@ -87,6 +87,79 @@ key_list = [
     "0x00010060", "0x00010064", "0x00010068", "0x0001006C",
     "0x00010070", "0x00010074", "0x00010078", "0x0001007C"
 ]
+
+def decoder(binary_text):
+    new_binary = binary_text[::-1]
+    func_3 = new_binary[12:15][::-1]
+    op_code = new_binary[0:7][::-1]
+    if op_code == "0110011":  
+        ins_type = "R"
+        func_7 = new_binary[25:32][::-1]
+        rs2 = new_binary[20:25][::-1]
+        rs1 = new_binary[15:20][::-1]
+        rd = new_binary[7:12][::-1]
+        if func_3 == "000" and func_7 == "0000000":
+            return [ins_type, "add", rd, rs2, rs1]
+        elif func_3 == "000" and func_7 == "0100000":
+            return [ins_type, "sub", rd, rs2, rs1]
+        elif func_3 == "010" and func_7 == "0000000":
+            return [ins_type, "slt", rd, rs2, rs1]
+        elif func_3 == "101" and func_7 == "0000000":
+            return [ins_type, "srl", rd, rs2, rs1]
+        elif func_3 == "110" and func_7 == "0000000":
+            return [ins_type, "or", rd, rs2, rs1]
+        elif func_3 == "111" and func_7 == "0000000":
+            return [ins_type, "and", rd, rs2, rs1]
+    elif op_code == "0000011":  
+        ins_type = "I"
+        rd = new_binary[7:12][::-1]
+        rs1 = new_binary[15:20][::-1]
+        imm = new_binary[20:32][::-1]
+        return [ins_type, "lw", rd, imm, rs1]
+    elif op_code == "0010011":  
+        ins_type = "I"
+        rd = new_binary[7:12][::-1]
+        rs1 = new_binary[15:20][::-1]
+        imm = new_binary[20:32][::-1]
+        return [ins_type, "addi", rd, imm, rs1]
+    elif op_code == "1100111":  
+        ins_type = "I"
+        rd = new_binary[7:12][::-1]
+        rs1 = new_binary[15:20][::-1]
+        imm = new_binary[20:32][::-1]
+        return [ins_type, "jalr", rd, imm, rs1]
+    elif op_code == "0100011":  
+        ins_type = "S"
+        rs2 = new_binary[20:25][::-1]
+        rs1 = new_binary[15:20][::-1]
+        imm_front = new_binary[25:32][::-1]
+        imm_back = new_binary[7:12][::-1]
+        imm = imm_front + imm_back
+        return [ins_type, "sw", rs2, imm, rs1]
+    elif op_code == "1100011":  
+        ins_type = "B"
+        rs2 = new_binary[20:25][::-1]
+        rs1 = new_binary[15:20][::-1]
+        imm_11 = new_binary[7:8][::-1]
+        imm_4_1 = new_binary[8:12][::-1]
+        imm_10_5 = new_binary[25:31][::-1]
+        imm_12 = new_binary[31:32][::-1]
+        imm = imm_12 + imm_11 + imm_10_5 + imm_4_1 + "0"
+        if func_3 == "000":
+            return [ins_type, "beq", rs2, rs1, imm]
+        elif func_3 == "001":
+            return [ins_type, "bne", rs2, rs1, imm]
+    elif op_code == "1101111":  # J-type (jal)
+        ins_type = "J"
+        rd = new_binary[7:12][::-1]
+        imm_20 = new_binary[31:32][::-1]
+        imm_10_1 = new_binary[21:31][::-1]
+        imm_11 = new_binary[20:21][::-1]
+        imm_19_12 = new_binary[12:20][::-1]
+        imm = imm_20 + imm_19_12 + imm_11 + imm_10_1 + "0"
+        return [ins_type, "jal", rd, imm]
+    return None
+
 def R_type(inst):
     ins = inst[1]
     rd = int(inst[2], 2)
