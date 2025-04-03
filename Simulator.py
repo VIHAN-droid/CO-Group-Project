@@ -177,6 +177,40 @@ def int_to_hex(n, width=8):
 
 def int_to_32bit_bin(n):
     return f"0b{n & 0xFFFFFFFF:032b}"
+
+def b_type_adjustment(a):
+    rs1 = int(a[3], 2)
+    rs2 = int(a[2], 2)
+    imm = twos_complement(a[4], 13)
+    if a[1] == 'beq':
+        if rs1 == 0 and rs2 == 0 and imm == 0:
+            return True
+        if register[f'x{rs1}'] == register[f'x{rs2}']:
+            register['PC'] += imm
+        else:
+            register['PC'] += 4
+    else:
+        if register[f'x{rs1}'] != register[f'x{rs2}']:
+            register['PC'] += imm
+        else:
+            register['PC'] += 4
+    return False
+
+def jal_operation(a):
+    rd = int(a[2], 2)
+    imm = twos_complement(a[3], 21)
+    if rd != 0:
+        register[f'x{rd}'] = register['PC'] + 4
+    register['PC'] += imm
+
+def jalr_operation(a):
+    rd = int(a[2], 2)
+    rs1 = int(a[4], 2)
+    imm = twos_complement(a[3], 12)
+    target = (register[f'x{rs1}'] + imm) & ~1
+    if rd != 0:
+        register[f'x{rd}'] = register['PC'] + 4
+    register['PC'] = target
     
 def R_type(inst):
     ins = inst[1]
